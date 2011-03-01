@@ -14,6 +14,7 @@ Options:
 -l, --list      List available block types and their names (from
                 <http://www.minecraftwiki.net/wiki/Data_values>).
 -n, --nether    Graph The Nether instead of the ordinary world.
+--log           Render logarithmic output.
 
 Description:
 
@@ -164,7 +165,7 @@ def print_block_types():
             sys.stdout.write(', '.join(block_names) + '\n')
 
 
-def plot(counts, block_type_hexes, title):
+def plot(counts, block_type_hexes, title, log):
     """
     Actual plotting of data.
 
@@ -174,12 +175,19 @@ def plot(counts, block_type_hexes, title):
     fig = plt.figure()
     fig.canvas.set_window_title(title)
 
-    for index, block_counts in enumerate(counts):
-        plt.semilogy(
-            block_counts,
-            label=BLOCK_TYPES[block_type_hexes[index]][0],
-            linewidth=1,
-            nonposy='clip')
+    if log:
+        for index, block_counts in enumerate(counts):
+            plt.semilogy(
+                block_counts,
+                label=BLOCK_TYPES[block_type_hexes[index]][0],
+                linewidth=1,
+                nonposy='clip')
+    else:
+        for index, block_counts in enumerate(counts):
+            plt.plot(
+                block_counts,
+                label=BLOCK_TYPES[block_type_hexes[index]][0],
+                linewidth=1)
 
     plt.legend()
     plt.xlabel(LABEL_X)
@@ -188,7 +196,7 @@ def plot(counts, block_type_hexes, title):
     plt.show()
 
 
-def mian(world_dir, block_type_hexes, nether):
+def mian(world_dir, block_type_hexes, nether, log):
     """
     Runs through the MCR files and gets the layer counts for the plot.
 
@@ -243,7 +251,7 @@ def mian(world_dir, block_type_hexes, nether):
 
     print "Done!"
 
-    plot(total_counts, block_type_hexes, title)
+    plot(total_counts, block_type_hexes, title, log)
 
 
 def count_blocks(region_blocks, block_type_hexes):
@@ -343,13 +351,14 @@ def main(argv=None):
     # Defaults
     block_type_names = DEFAULT_BLOCK_TYPES
     nether = False
+    log = False
 
     try:
         try:
             opts, args = getopt(
                 argv[1:],
                 'b:lnh',
-                ['blocks=', 'list', 'nether', 'help'])
+                ['blocks=', 'list', 'log', 'nether', 'help'])
         except GetoptError, err:
             raise Usage(str(err))
 
@@ -358,6 +367,8 @@ def main(argv=None):
                 block_type_names = value.split(',')
             elif option in ('-n', '--nether'):
                 nether = True
+            elif option in ('--log'):
+                log = True
             elif option in ('-l', '--list'):
                 print_block_types()
                 return 0
@@ -383,7 +394,7 @@ def main(argv=None):
                 if found_hex not in block_type_hexes:  # Avoid duplicates
                     block_type_hexes.append(found_hex)
 
-        mian(world_dir, block_type_hexes, nether)
+        mian(world_dir, block_type_hexes, nether, log)
 
     except Usage, err:
         sys.stderr.write(err.msg + '\n')
