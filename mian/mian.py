@@ -175,10 +175,11 @@ def plot(counts, block_type_hexes, title):
     fig.canvas.set_window_title(title)
 
     for index, block_counts in enumerate(counts):
-        plt.plot(
+        plt.semilogy(
             block_counts,
             label=BLOCK_TYPES[block_type_hexes[index]][0],
-            linewidth=1)
+            linewidth=1,
+            nonposy='clip')
 
     plt.legend()
     plt.xlabel(LABEL_X)
